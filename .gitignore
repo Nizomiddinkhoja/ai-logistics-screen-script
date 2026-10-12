@@ -4,5 +4,9 @@ __pycache__
 
 # Данные программы: ключ входа, ключ окна выбора папок, настройки, миниатюры
 docker-config/
-settings.json
 thumbs/
+
+# В репозитории лежит settings.json с пустыми значениями (образец).
+# Свои настройки в него не коммитить:
+#   git update-index --skip-worktree settings.json
+settings.json

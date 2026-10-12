@@ -1,0 +1,19 @@
+{
+  "INPUT_FOLDER": "",
+  "ONLY_FOLDERS": [],
+  "PARALLEL_RUNS": null,
+  "SCREENSHOTS_IN_PLACE": null,
+  "OUTPUT_FOLDER": "",
+  "APPROVED_FOLDER": "",
+  "DELETED_FOLDER": "",
+  "SAVE_AS_PNG": null,
+  "JPEG_QUALITY": null,
+  "INTERVAL_SECONDS": null,
+  "MIN_FILE_SIZE_BYTES": null,
+  "MIN_FREE_GB": null,
+  "GROWING_CHECK_AGE_SECONDS": null,
+  "DAMAGED_LIST_NAME": "",
+  "LOGS_FOLDER": "",
+  "ERRORS_LOG_NAME": "",
+  "RUN_LOG_NAME": ""
+}

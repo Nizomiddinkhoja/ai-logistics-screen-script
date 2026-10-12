@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Вход по коду</title>
+<style>
+:root {
+  --bg: #E6EBEE; --surface: #F6F8F9; --field: #FFFFFF;
+  --ink: #14232C; --muted: #5A6B75; --line: #C9D2D8;
+  --petrol: #1B5566; --petrol-strong: #123E4B; --on-petrol: #F2F8FA;
+  --amber: #D99A00; --bad: #B0352D;
+  --display: Bahnschrift, "DIN Alternate", "Segoe UI Variable Display", "Segoe UI", sans-serif;
+  --body: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --mono: "Cascadia Mono", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0E1A20; --surface: #15252D; --field: #0F1D24;
+    --ink: #E3ECEF; --muted: #93A5AE; --line: #2B3F49;
+    --petrol: #3E94AB; --petrol-strong: #56ABC2; --on-petrol: #071318;
+    --amber: #E8AE1B; --bad: #E0736A;
+  }
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  margin: 0; min-height: 100vh;
+  display: grid; place-items: center;
+  padding: 16px;
+  font: 15px/1.45 var(--body);
+  color: var(--ink); background: var(--bg);
+}
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+form {
+  width: min(380px, 100%);
+  padding: 26px;
+  background: var(--surface);
+  border: 1px solid var(--line); border-radius: 6px;
+}
+h1 { margin: 0 0 18px; font: 600 30px/1.1 var(--display); font-stretch: 87%; }
+input {
+  width: 100%; height: 54px; padding: 0 14px;
+  background: var(--field); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 4px;
+  font: 28px var(--mono); letter-spacing: .3em; text-align: center;
+}
+button {
+  width: 100%; height: 44px; margin-top: 14px;
+  border: 0; border-radius: 4px;
+  background: var(--petrol); color: var(--on-petrol);
+  font: 600 17px var(--display); cursor: pointer;
+}
+button:hover { background: var(--petrol-strong); }
+button:disabled { opacity: .5; cursor: not-allowed; }
+.err { min-height: 21px; margin: 10px 0 0; color: var(--bad); font-size: 14px; }
+</style>
+</head>
+<body>
+<form id="form" autocomplete="off">
+  <h1 id="title">Вход по коду</h1>
+  <input id="code" name="code" aria-labelledby="title" inputmode="numeric" autocomplete="one-time-code"
+         pattern="[0-9 ]*" maxlength="7" required autofocus>
+  <button type="submit" id="go">Войти</button>
+  <p class="err" id="err" role="alert"></p>
+</form>
+<script>
+const form = document.getElementById("form"), code = document.getElementById("code");
+const go = document.getElementById("go"), err = document.getElementById("err");
+
+async function submit() {
+  go.disabled = true;
+  err.textContent = "";
+  try {
+    const r = await fetch("/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: code.value }),
+    });
+    const res = await r.json();
+    if (!res.error) { location.reload(); return; }
+    err.textContent = res.error;
+  } catch (e) {
+    err.textContent = "Нет связи с программой. Попробуйте ещё раз.";
+  }
+  go.disabled = false;
+  code.value = "";
+  code.focus();
+}
+
+form.addEventListener("submit", e => { e.preventDefault(); submit(); });
+code.addEventListener("input", () => {
+  if (code.value.replace(/\D/g, "").length === 6 && !go.disabled) submit();
+});
+</script>
+</body>
+</html>

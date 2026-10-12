@@ -1,0 +1,809 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Скриншоты из записей</title>
+<style>
+:root {
+  --bg: #E6EBEE;
+  --surface: #F6F8F9;
+  --field: #FFFFFF;
+  --ink: #14232C;
+  --muted: #5A6B75;
+  --line: #C9D2D8;
+  --petrol: #1B5566;
+  --petrol-strong: #123E4B;
+  --on-petrol: #F2F8FA;
+  --amber: #D99A00;
+  --amber-soft: #F6E7BF;
+  --bad: #B0352D;
+  --good: #2E7D5B;
+  --frame: #2A4652;
+  --console-bg: #0F2029;
+  --console-ink: #C8D6DC;
+  --display: Bahnschrift, "DIN Alternate", "Segoe UI Variable Display", "Segoe UI", sans-serif;
+  --body: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --mono: "Cascadia Mono", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0E1A20;
+    --surface: #15252D;
+    --field: #0F1D24;
+    --ink: #E3ECEF;
+    --muted: #93A5AE;
+    --line: #2B3F49;
+    --petrol: #3E94AB;
+    --petrol-strong: #56ABC2;
+    --on-petrol: #071318;
+    --amber: #E8AE1B;
+    --amber-soft: #3B2F0C;
+    --bad: #E0736A;
+    --good: #5FBF95;
+    --frame: #24404C;
+    --console-bg: #081217;
+  }
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { background: var(--bg); }
+body {
+  margin: 0;
+  font: 15px/1.45 var(--body);
+  color: var(--ink);
+  background: var(--bg);
+}
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+.page { max-width: 1320px; margin: 0 auto; padding: 28px 28px 48px; }
+
+/* ---------- шапка с лентой кадров ---------- */
+.top { margin-bottom: 28px; }
+.app-name { margin: 0 0 6px; font-size: 14px; color: var(--muted); font-weight: 400; }
+.app-line { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+.app-nav { display: flex; align-items: baseline; gap: 18px; }
+.out { padding: 0; border: 0; background: none; color: var(--muted); font-size: 14px; text-decoration: underline; cursor: pointer; }
+.out:hover { color: var(--ink); }
+.app-nav a { color: var(--petrol); font-size: 14px; font-weight: 600; }
+.top-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 28px; }
+.headline {
+  margin: 0;
+  font: 600 44px/1.05 var(--display);
+  font-stretch: 87%;
+  letter-spacing: -0.01em;
+}
+.rate { color: var(--muted); font-size: 15px; }
+.rate b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.sample { margin: 10px 0 0; font-size: 13px; color: var(--muted); }
+.sample code { font: 13px var(--mono); color: var(--ink); }
+
+/* ---------- сетка ---------- */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 460px);
+  gap: 32px;
+  align-items: start;
+}
+
+/* ---------- настройки ---------- */
+fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.group { margin-bottom: 26px; }
+.group h2 {
+  margin: 0;
+  padding-bottom: 8px;
+  font: 600 20px/1.2 var(--display);
+  border-bottom: 2px solid var(--ink);
+}
+.row {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 8px 20px;
+  align-items: center;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line);
+}
+.row.off .ctl, .row.off label { opacity: .45; }
+.lab { position: relative; display: flex; align-items: center; gap: 8px; }
+.lab label { font-weight: 500; }
+
+.q {
+  flex: none;
+  width: 20px; height: 20px; padding: 0;
+  border: 1px solid var(--muted); border-radius: 50%;
+  background: transparent; color: var(--muted);
+  font: 600 12px/1 var(--body);
+  cursor: help;
+}
+.q:hover, .q:focus { background: var(--petrol); border-color: var(--petrol); color: var(--on-petrol); }
+.tip {
+  display: none;
+  position: absolute; z-index: 5;
+  top: calc(100% + 6px); left: 0;
+  width: min(340px, 80vw);
+  padding: 10px 12px;
+  background: var(--ink); color: var(--bg);
+  border-radius: 4px;
+  font-size: 13.5px; line-height: 1.45;
+}
+.q:hover + .tip, .q:focus + .tip, .tip:hover { display: block; }
+
+.ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
+input[type=text], input[type=number] {
+  height: 36px; padding: 0 10px;
+  background: var(--field);
+  border: 1px solid var(--line); border-radius: 4px;
+}
+input[type=text]:hover, input[type=number]:hover { border-color: var(--muted); }
+input.path { flex: 1 1 220px; min-width: 0; font: 13.5px var(--mono); }
+input.name { flex: 0 1 280px; min-width: 0; font: 13.5px var(--mono); }
+input[type=number] { width: 110px; font-variant-numeric: tabular-nums; }
+.unit, .note { color: var(--muted); font-size: 13.5px; }
+.err { flex-basis: 100%; color: var(--bad); font-size: 13.5px; }
+.chosen { flex-basis: 100%; margin: 0; padding: 0; list-style: none; }
+.chosen li { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
+.chosen code { flex: 1; min-width: 0; font: 13.5px var(--mono); overflow-wrap: anywhere; }
+.chosen .all { color: var(--muted); }
+.chosen .btn { height: 30px; padding: 0 10px; font-size: 13.5px; }
+.err:empty { display: none; }
+[aria-invalid=true] { border-color: var(--bad) !important; }
+
+.btn {
+  height: 36px; padding: 0 13px;
+  background: transparent;
+  border: 1px solid var(--line); border-radius: 4px;
+  cursor: pointer;
+}
+.btn:hover { border-color: var(--ink); }
+.btn:disabled, input:disabled { cursor: not-allowed; }
+
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; background: var(--field); }
+.seg label { position: relative; cursor: pointer; }
+.seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: inherit; }
+.seg span { display: block; padding: 7px 14px; white-space: nowrap; }
+.seg label + label span { border-left: 1px solid var(--line); }
+.seg input:checked + span { background: var(--petrol); color: var(--on-petrol); }
+.seg input:focus-visible + span { outline: 2px solid var(--amber); outline-offset: -2px; }
+
+.sw { position: relative; display: inline-flex; align-items: center; gap: 10px; cursor: pointer; }
+.sw input { position: absolute; opacity: 0; width: 42px; height: 24px; margin: 0; cursor: inherit; }
+.sw i {
+  width: 42px; height: 24px; border-radius: 12px;
+  background: var(--line); position: relative; transition: background .15s;
+}
+.sw i::after {
+  content: ""; position: absolute; top: 3px; left: 3px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--field); transition: transform .15s;
+}
+.sw input:checked + i { background: var(--petrol); }
+.sw input:checked + i::after { transform: translateX(18px); }
+.sw input:focus-visible + i { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+.foot { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; color: var(--muted); font-size: 13.5px; }
+.foot .bad { color: var(--bad); }
+
+/* ---------- запуск ---------- */
+.run {
+  position: sticky; top: 20px;
+  background: var(--surface);
+  border: 1px solid var(--line); border-radius: 6px;
+  padding: 18px;
+}
+.run-head { display: flex; align-items: center; gap: 10px; }
+.go {
+  height: 44px; padding: 0 22px;
+  border: 0; border-radius: 4px;
+  background: var(--petrol); color: var(--on-petrol);
+  font: 600 17px var(--display);
+  cursor: pointer;
+}
+.go:hover { background: var(--petrol-strong); }
+.go.stop { background: transparent; color: var(--bad); box-shadow: inset 0 0 0 1.5px var(--bad); }
+.go:disabled { opacity: .5; cursor: not-allowed; }
+.status { margin: 14px 0 8px; min-height: 22px; display: flex; align-items: center; gap: 8px; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); flex: none; }
+.dot.live { background: var(--amber); animation: pulse 1.2s ease-in-out infinite; }
+.dot.ok { background: var(--good); }
+.dot.fail { background: var(--bad); }
+@keyframes pulse { 50% { opacity: .3; } }
+.bar { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--amber); transition: width .3s; }
+.jobs { margin: 12px 0 0; padding: 0; list-style: none; max-height: 190px; overflow: auto; font-size: 13.5px; }
+.jobs li { display: flex; align-items: baseline; gap: 10px; padding: 4px 0; border-bottom: 1px solid var(--line); }
+.jobs code { flex: 1; min-width: 0; font: 13px var(--mono); overflow-wrap: anywhere; }
+.jobs span { color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.jobs .running span { color: var(--ink); font-weight: 600; }
+.jobs .ok span { color: var(--good); }
+.jobs .fail span { color: var(--bad); }
+.console {
+  margin: 14px 0 0;
+  height: calc(100vh - 270px); min-height: 280px;
+  overflow: auto;
+  padding: 12px 14px;
+  background: var(--console-bg); color: var(--console-ink);
+  border-radius: 4px;
+  font: 12.5px/1.5 var(--mono);
+  white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.console .h { color: #FFFFFF; font-weight: 700; }
+.console .ok { color: #7FD1A8; }
+.console .bad { color: #F08B80; }
+.console .dim { color: #6F8792; }
+.links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.links .btn { font-size: 13.5px; height: 32px; }
+
+dialog {
+  width: min(560px, calc(100vw - 32px));
+  padding: 18px;
+  background: var(--surface); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 6px;
+}
+dialog::backdrop { background: rgb(8 18 23 / .55); }
+dialog h2 { margin: 0 0 10px; font: 600 20px/1.2 var(--display); }
+.here { margin: 0 0 10px; font: 13.5px var(--mono); overflow-wrap: anywhere; }
+.dirs {
+  height: min(360px, 50vh); overflow: auto;
+  margin: 0 0 14px; padding: 4px;
+  list-style: none;
+  background: var(--field);
+  border: 1px solid var(--line); border-radius: 4px;
+}
+.dirs button {
+  display: block; width: 100%;
+  padding: 7px 10px;
+  background: transparent; border: 0; border-radius: 3px;
+  text-align: left; cursor: pointer;
+}
+.dirs button:hover { background: var(--bg); }
+.dirs .empty { padding: 7px 10px; color: var(--muted); }
+.dlg-foot { display: flex; justify-content: flex-end; gap: 8px; }
+.btn.main { background: var(--petrol); border-color: var(--petrol); color: var(--on-petrol); }
+
+@media (max-width: 1100px) {
+  .page { padding: 18px 16px 40px; }
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .run { position: static; }
+  .console { height: 360px; }
+  .headline { font-size: 32px; }
+}
+@media (max-width: 620px) {
+  .row { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="top">
+    <div class="app-line">
+      <p class="app-name">Скриншоты из записей</p>
+      <nav class="app-nav">
+        <a href="/browse">Проводник скринов</a>
+        <button type="button" class="out" id="logout" hidden>Выйти</button>
+      </nav>
+    </div>
+    <div class="top-line">
+      <h1 class="headline" id="headline">Кадр каждые 3 секунды</h1>
+      <span class="rate" id="rate"></span>
+    </div>
+    <p class="sample">Имя файла: <code id="sample"></code></p>
+  </header>
+
+  <div class="layout">
+    <form id="form" autocomplete="off" onsubmit="return false">
+      <fieldset id="fields"></fieldset>
+      <div class="foot">
+        <button type="button" class="btn" id="reset">Вернуть значения по умолчанию</button>
+        <span id="saved" role="status"></span>
+      </div>
+    </form>
+
+    <aside class="run" aria-label="Запуск">
+      <div class="run-head">
+        <button type="button" class="go" id="go">Запустить</button>
+      </div>
+      <div class="status"><span class="dot" id="dot"></span><span id="status" role="status">Готово к запуску</span></div>
+      <div class="bar"><i id="bar"></i></div>
+      <ul class="jobs" id="jobs" aria-label="Скрипты" hidden></ul>
+      <div class="console" id="console" tabindex="0" aria-label="Журнал работы"><span class="dim">Здесь появится ход обработки.</span></div>
+      <div class="links">
+        <button type="button" class="btn" data-open="SCREENS">Открыть папку со скринами</button>
+        <button type="button" class="btn" data-open="LOGS_FOLDER">Открыть логи</button>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<dialog id="picker" aria-labelledby="picker-title">
+  <h2 id="picker-title">Выбор папки</h2>
+  <p class="here" id="picker-path"></p>
+  <ul class="dirs" id="picker-list"></ul>
+  <div class="dlg-foot">
+    <button type="button" class="btn" id="picker-cancel">Отмена</button>
+    <button type="button" class="btn main" id="picker-ok">Выбрать эту папку</button>
+  </div>
+</dialog>
+
+<script>
+const TOKEN = "__TOKEN__";
+
+const GROUPS = [
+  ["Папки", [
+    { key: "INPUT_FOLDER", type: "path", label: "Папка с видео",
+      tip: "Папка с записями. Просматривается вместе со всеми вложенными папками. Берутся только файлы .mp4, остальное пропускается." },
+    { key: "ONLY_FOLDERS", type: "folders", label: "Какие папки обрабатывать",
+      tip: "По умолчанию обрабатывается вся папка с видео. Чтобы сделать скрины только из части записей, добавьте сюда нужные папки внутри неё — например, один день или одну камеру. Скрины лягут по тому же пути внутри папки для скринов." },
+    { key: "PARALLEL_RUNS", type: "num", label: "Скриптов одновременно", unit: "на выбранные папки", min: 1, max: 16, step: 1,
+      tip: "Если выше выбрано несколько папок, на каждую запускается отдельный скрипт, и они работают одновременно — не больше этого числа, остальные ждут очереди. При значении 1 папки обрабатываются по очереди одним скриптом. Больше скриптов — быстрее, но сильнее нагрузка на процессор и диск." },
+    { key: "SCREENSHOTS_IN_PLACE", type: "seg", label: "Куда класть скрины",
+      options: [[false, "В отдельную папку"], [true, "Рядом с видео"]],
+      tip: "В отдельную папку — в ней повторяется структура папок с видео. Рядом с видео — скрины сохраняются в те же папки, где лежат записи." },
+    { key: "OUTPUT_FOLDER", type: "path", label: "Папка для скринов",
+      on: s => !s.SCREENSHOTS_IN_PLACE,
+      tip: "Сюда складываются скрины из видео в режиме «В отдельную папку». Вложенные папки создаются автоматически и повторяют структуру папок с видео." },
+    { key: "APPROVED_FOLDER", type: "path", label: "Одобренные скрины",
+      tip: "Сюда проводник переносит скрин по кнопке «Одобрить». Вложенные папки те же, что в папке для скринов. Одобренный скрин при следующем запуске заново не создаётся." },
+    { key: "DELETED_FOLDER", type: "path", label: "Удалённые скрины",
+      tip: "Сюда проводник переносит скрин по кнопке «Удалить». Файл не стирается, его можно вернуть. Удалённый скрин при следующем запуске заново не создаётся." },
+  ]],
+  ["Кадры", [
+    { key: "INTERVAL_SECONDS", type: "num", label: "Интервал между кадрами", unit: "секунд", min: 1, step: 1,
+      tip: "Через сколько секунд записи брать следующий кадр. Чем меньше интервал, тем больше скринов и тем больше места они займут." },
+    { key: "SAVE_AS_PNG", type: "seg", label: "Формат",
+      options: [[true, "PNG"], [false, "JPEG"]],
+      tip: "PNG — без потери качества, файлы крупнее. JPEG — файлы меньше, качество задаётся в следующем поле." },
+    { key: "JPEG_QUALITY", type: "num", label: "Качество JPEG", unit: "из 100", min: 1, max: 100, step: 1,
+      on: s => !s.SAVE_AS_PNG,
+      tip: "От 1 до 100. 100 — максимальное качество и самый большой файл. Используется только для формата JPEG." },
+  ]],
+  ["Проверки", [
+    { key: "MIN_FREE_GB", type: "num", label: "Запас места на диске", unit: "ГБ", min: 0, step: 1, extra: "free",
+      tip: "Обработка останавливается, если на диске со скринами осталось меньше этого объёма. После освобождения места запустите снова — продолжит с места остановки." },
+    { key: "MIN_FILE_SIZE_BYTES", type: "num", label: "Минимальный размер скрина", unit: "байт", min: 0, step: 1,
+      tip: "Готовый скрин меньше этого размера считается недописанным и при следующем запуске создаётся заново." },
+    { key: "GROWING_CHECK_AGE_SECONDS", type: "num", label: "Проверять, идёт ли запись", unit: "секунд после изменения", min: 0, step: 1,
+      tip: "Видео, изменённое меньше стольких секунд назад, проверяется: если файл ещё растёт, значит запись идёт, и он пропускается. Более старые файлы не проверяются." },
+    { key: "DAMAGED_LIST_NAME", type: "name", label: "Список повреждённых кадров",
+      tip: "Файл в папке со скринами: в него записываются кадры, которые не декодируются из-за повреждения записи (серый экран). При повторном запуске они пропускаются. Удалите файл, чтобы попробовать их заново." },
+  ]],
+  ["Логи", [
+    { key: "LOGS_FOLDER", type: "path", label: "Папка с логами",
+      tip: "Сюда пишутся оба файла журнала. Папка создаётся автоматически." },
+    { key: "ERRORS_LOG_NAME", type: "name", label: "Файл с ошибками",
+      tip: "Журнал ошибок и предупреждений: битые видео, несохранённые кадры, проблемы с папками." },
+    { key: "RUN_LOG_NAME", type: "name", label: "Файл хода работы",
+      tip: "Журнал запусков: какие папки начаты и завершены, сколько скринов создано, итог каждого запуска." },
+  ]],
+];
+const FIELDS = GROUPS.flatMap(g => g[1]);
+
+const $ = id => document.getElementById(id);
+const fmt = n => n.toLocaleString("ru-RU");
+let S = {}, DEFAULTS = {}, freeGb = null, busy = false, REMOTE = false;
+
+async function api(path, body) {
+  const opt = { headers: { "X-Token": TOKEN } };
+  if (body !== undefined) {
+    opt.method = "POST";
+    opt.body = JSON.stringify(body);
+    opt.headers["Content-Type"] = "application/json";
+  }
+  const r = await fetch(path, opt);
+  if (r.status === 403) { location.reload(); await new Promise(() => {}); }
+  if (!r.ok) throw new Error("Сервер ответил " + r.status + ". Обновите страницу.");
+  return r.json();
+}
+
+/* ---------- форма ---------- */
+function el(tag, attrs, ...kids) {
+  const n = document.createElement(tag);
+  for (const k in attrs || {}) {
+    if (k === "class") n.className = attrs[k];
+    else if (attrs[k] !== undefined) n.setAttribute(k, attrs[k]);
+  }
+  n.append(...kids);
+  return n;
+}
+
+function build() {
+  const root = $("fields");
+  for (const [title, fields] of GROUPS) {
+    const group = el("section", { class: "group" }, el("h2", null, title));
+    for (const f of fields) {
+      const id = "f_" + f.key, tipId = "t_" + f.key;
+      const lab = el("div", { class: "lab" },
+        el("label", f.type === "seg" ? { id: id + "_l" } : { for: id }, f.label),
+        el("button", { type: "button", class: "q", "aria-label": "Подсказка: " + f.label, "aria-describedby": tipId }, "?"),
+        el("div", { class: "tip", role: "tooltip", id: tipId }, f.tip));
+      const ctl = el("div", { class: "ctl" });
+
+      if (f.type === "path") {
+        ctl.append(
+          el("input", { type: "text", class: "path", id, spellcheck: "false" }),
+          el("button", { type: "button", class: "btn", "data-pick": f.key }, "Выбрать"));
+      } else if (f.type === "name") {
+        ctl.append(el("input", { type: "text", class: "name", id, spellcheck: "false" }));
+      } else if (f.type === "num") {
+        ctl.append(
+          el("input", { type: "number", id, min: f.min, max: f.max, step: f.step, inputmode: "decimal" }),
+          el("span", { class: "unit" }, f.unit));
+        if (f.extra === "free") ctl.append(el("span", { class: "note", id: "free" }));
+      } else if (f.type === "seg") {
+        const seg = el("div", { class: "seg", role: "radiogroup", "aria-labelledby": id + "_l" });
+        for (const [value, text] of f.options) {
+          seg.append(el("label", null,
+            el("input", { type: "radio", name: f.key, value: String(value) }),
+            el("span", null, text)));
+        }
+        ctl.append(seg);
+      } else if (f.type === "switch") {
+        ctl.append(el("label", { class: "sw" },
+          el("input", { type: "checkbox", id }), el("i"),
+          el("span", { class: "unit", id: id + "_s" })));
+      } else if (f.type === "folders") {
+        ctl.append(el("ul", { class: "chosen", id }),
+          el("button", { type: "button", class: "btn", "data-add": f.key }, "Добавить папку"));
+      }
+      ctl.append(el("div", { class: "err", id: "e_" + f.key }));
+      group.append(el("div", { class: "row", id: "r_" + f.key }, lab, ctl));
+    }
+    root.append(group);
+  }
+}
+
+function fill() {
+  for (const f of FIELDS) {
+    const v = S[f.key];
+    if (f.type === "seg") {
+      document.querySelectorAll(`input[name=${f.key}]`).forEach(r => r.checked = r.value === String(v));
+    } else if (f.type === "switch") {
+      $("f_" + f.key).checked = v;
+    } else if (f.type === "folders") {
+      LISTS[f.key] = (v || []).slice();
+      drawList(f.key);
+    } else {
+      $("f_" + f.key).value = v;
+    }
+  }
+  refresh();
+}
+
+/* список выбранных папок внутри папки с видео */
+const LISTS = {};
+function drawList(key) {
+  const box = $("f_" + key), items = LISTS[key] || [];
+  const sep = String(S.INPUT_FOLDER || "").includes("\\") ? "\\" : "/";
+  box.textContent = "";
+  if (!items.length) {
+    box.append(el("li", null, el("code", { class: "all" }, "Вся папка с видео")));
+    return;
+  }
+  items.forEach((item, n) => {
+    const remove = el("button", { type: "button", class: "btn", "aria-label": "Убрать папку " + item }, "Убрать");
+    remove.addEventListener("click", () => { LISTS[key].splice(n, 1); drawList(key); queueSave(); });
+    box.append(el("li", null, el("code", null, item.split("/").join(sep)), remove));
+  });
+}
+
+function read() {
+  const out = {};
+  for (const f of FIELDS) {
+    if (f.type === "seg") {
+      const r = document.querySelector(`input[name=${f.key}]:checked`);
+      out[f.key] = r ? r.value === "true" : S[f.key];
+    } else if (f.type === "switch") {
+      out[f.key] = $("f_" + f.key).checked;
+    } else if (f.type === "folders") {
+      out[f.key] = (LISTS[f.key] || []).slice();
+    } else if (f.type === "num") {
+      const raw = $("f_" + f.key).value.trim();
+      out[f.key] = raw === "" ? null : Number(raw);
+    } else {
+      out[f.key] = $("f_" + f.key).value;
+    }
+  }
+  return out;
+}
+
+/* зависимые поля, лента кадров, подписи */
+function refresh() {
+  const cur = read();
+  for (const f of FIELDS) {
+    const on = !f.on || f.on(cur);
+    $("r_" + f.key).classList.toggle("off", !on);
+    $("r_" + f.key).querySelectorAll(".ctl input, .ctl button").forEach(n => n.disabled = !on);
+    if (f.type === "switch") $("f_" + f.key + "_s").textContent = cur[f.key] ? "Включено" : "Выключено";
+  }
+
+  const n = Number.isFinite(cur.INTERVAL_SECONDS) && cur.INTERVAL_SECONDS >= 1 ? Math.floor(cur.INTERVAL_SECONDS) : null;
+  const ext = cur.SAVE_AS_PNG ? ".png" : ".jpg";
+  if (n) {
+    const m10 = n % 10, m100 = n % 100;
+    const one = m10 === 1 && m100 !== 11;
+    const few = m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14);
+    $("headline").textContent = `Кадр ${one ? "каждую" : "каждые"} ${fmt(n)} ${one ? "секунду" : few ? "секунды" : "секунд"}`;
+    $("rate").innerHTML = `<b>${fmt(Math.ceil(3600 / n))}</b> скринов с часа записи, ${cur.SAVE_AS_PNG ? "PNG без потери качества" : "JPEG, качество " + (cur.JPEG_QUALITY ?? "")}`;
+    $("sample").textContent = `cam11_20261005_1600_${clock(16 * 3600, "-")}${ext}`;
+  }
+
+  $("free").textContent = freeGb == null ? "" : `сейчас свободно ${fmt(freeGb)} ГБ`;
+}
+
+function clock(sec, sep) {
+  sec %= 86400;
+  const p = x => String(Math.floor(x)).padStart(2, "0");
+  return [p(sec / 3600), p(sec % 3600 / 60), p(sec % 60)].join(sep);
+}
+
+function showErrors(errors) {
+  for (const f of FIELDS) {
+    const msg = errors[f.key] || "";
+    $("e_" + f.key).textContent = msg;
+    const input = $("f_" + f.key);
+    if (input) input.setAttribute("aria-invalid", msg ? "true" : "false");
+  }
+}
+
+function note(text, bad) {
+  $("saved").textContent = text;
+  $("saved").className = bad ? "bad" : "";
+}
+
+let saveTimer = null, saving = Promise.resolve(true);
+function queueSave() {
+  refresh();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => { saving = save(); }, 400);
+}
+
+async function save() {
+  clearTimeout(saveTimer);
+  saveTimer = null;
+  try {
+    const res = await api("/api/settings", read());
+    if (res.errors) {
+      // неподходящая папка в список не попадает
+      for (const f of FIELDS) {
+        if (f.type === "folders" && res.errors[f.key]) { LISTS[f.key] = (S[f.key] || []).slice(); drawList(f.key); }
+      }
+      showErrors(res.errors);
+      note("Не сохранено: исправьте отмеченные поля.", true);
+      return false;
+    }
+    if (res.error) { note(res.error, true); return false; }
+    showErrors({});
+    S = res.settings;
+    freeGb = res.free_gb;
+    for (const f of FIELDS) {
+      if (f.type === "folders") { LISTS[f.key] = (S[f.key] || []).slice(); drawList(f.key); }
+    }
+    refresh();
+    note(res.input_exists ? "Настройки сохранены." : "Сохранено, но папка с видео не найдена.", !res.input_exists);
+    return true;
+  } catch (e) {
+    note(e.message, true);
+    return false;
+  }
+}
+
+/* ---------- запуск и журнал ---------- */
+let runId = 0, next = 0, state = "idle", pollTimer = null;
+
+function lineClass(t) {
+  const s = t.trimStart();
+  if (s.startsWith("✓")) return "ok";
+  if (s.startsWith("✗") || /^(ОШИБКА|ОСТАНОВЛЕНО|НЕОБРАБОТАННОЕ|Traceback)/.test(s)) return "bad";
+  if (s.startsWith(">>>") || s.startsWith("###") || s === "ИТОГО") return "h";
+  if (/^=+$/.test(s)) return "dim";
+  return "";
+}
+
+function render(st) {
+  const box = $("console");
+  if (st.run_id !== runId) {
+    runId = st.run_id;
+    box.textContent = "";
+    next = st.from;
+  }
+  if (st.lines.length) {
+    const stick = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
+    const frag = document.createDocumentFragment();
+    for (const line of st.lines) {
+      const span = document.createElement("span");
+      span.className = lineClass(line);
+      span.textContent = line + "\n";
+      frag.append(span);
+    }
+    box.append(frag);
+    while (box.childNodes.length > 5000) box.firstChild.remove();
+    if (stick) box.scrollTop = box.scrollHeight;
+  }
+  next = st.from + st.lines.length;
+  state = st.state;
+
+  const go = $("go"), dot = $("dot");
+  const running = state !== "idle";
+  $("fields").disabled = running;
+  $("reset").disabled = running;
+  go.textContent = state === "running" ? "Остановить" : state === "stopping" ? "Останавливается…" : "Запустить";
+  go.classList.toggle("stop", running);
+  go.disabled = state === "stopping";
+
+  // по строке на каждый скрипт, когда их несколько
+  const jobs = st.jobs || [], list = $("jobs");
+  list.hidden = !jobs.length;
+  list.textContent = "";
+  for (const job of jobs) {
+    const videos = job.total ? `${fmt(job.done)} из ${fmt(job.total)} видео` : "";
+    const lost = job.broken ? `, не открылось ${fmt(job.broken)}` : "";
+    let what = "в очереди", cls = "";
+    if (job.state === "running") { what = (videos || "сканирование") + lost; cls = "running"; }
+    else if (job.state === "cancelled") what = "отменено";
+    else if (job.state === "done") {
+      const all = job.exit_code === 0 && job.total > 0 && job.done >= job.total;
+      if (job.exit_code) { what = `ошибка (код ${job.exit_code})`; cls = "fail"; }
+      else if (all) { what = "готово: " + videos + lost; cls = job.broken ? "fail" : "ok"; }
+      else what = videos ? "остановлено: " + videos : "видео не найдено";
+    }
+    list.append(el("li", { class: cls }, el("code", null, job.label), el("span", null, what)));
+  }
+  const active = jobs.filter(j => j.state === "running").length;
+  const finished = jobs.filter(j => j.state === "done").length;
+
+  const pct = st.total ? Math.min(100, st.done / st.total * 100) : 0;
+  $("bar").style.width = (running || st.run_id ? pct : 0) + "%";
+
+  let text = "Готово к запуску", cls = "";
+  const prog = st.total ? `${fmt(st.done)} из ${fmt(st.total)} видео` : "сканирование папок";
+  const broken = st.broken ? `, не открылось ${fmt(st.broken)}` : "";
+  if (state === "running" && jobs.length) { text = `Работает скриптов: ${active}, готово папок: ${finished} из ${jobs.length}. Видео: ${prog}${broken}`; cls = "live"; }
+  else if (state === "running") { text = `Идёт обработка: ${prog}${broken}`; cls = "live"; }
+  else if (state === "stopping") { text = "Останавливается, дописывает текущий кадр…"; cls = "live"; }
+  else if (st.run_id) {
+    const complete = st.exit_code === 0 && st.total > 0 && st.done >= st.total;
+    if (complete) { text = `Готово: ${prog}${broken}`; cls = st.broken ? "fail" : "ok"; }
+    else if (st.exit_code === 0) { text = st.total ? `Остановлено: ${prog}${broken}. Запустите снова — продолжит с этого места.` : "Завершено, подробности в журнале ниже."; }
+    else { text = `Завершилось с ошибкой (код ${st.exit_code}). Смотрите журнал ниже.`; cls = "fail"; }
+  }
+  $("status").textContent = text;
+  dot.className = "dot " + cls;
+}
+
+async function poll() {
+  clearTimeout(pollTimer);
+  try {
+    render(await api("/api/log?from=" + next));
+  } catch (e) {
+    $("status").textContent = "Нет связи с программой. Запустите её заново.";
+    $("dot").className = "dot fail";
+  }
+  pollTimer = setTimeout(poll, state === "idle" ? 2500 : 600);
+}
+
+$("go").addEventListener("click", async () => {
+  if (busy) return;
+  busy = true;
+  try {
+    if (state === "running") {
+      await api("/api/stop", {});
+    } else if (state === "idle") {
+      if (!(await save())) return;
+      const res = await api("/api/run", {});
+      if (res.error) { note(res.error, true); return; }
+    }
+    await poll();
+  } catch (e) {
+    note(e.message, true);
+  } finally {
+    busy = false;
+  }
+});
+
+/* ---------- события ---------- */
+$("form").addEventListener("input", queueSave);
+
+document.addEventListener("click", async e => {
+  const add = e.target.closest("[data-add]");
+  if (add) {
+    add.disabled = true;
+    try {
+      const start = $("f_INPUT_FOLDER").value;
+      const res = await api("/api/pick", { initial: start });
+      if (res.fallback) note("Окно выбора папок Windows не запущено (start_docker.bat), поэтому папка выбирается здесь.");
+      const path = res.fallback ? await browse(start) : res.path;
+      if (path) { LISTS[add.dataset.add].push(path); drawList(add.dataset.add); saving = save(); }
+    } catch (err) { note(err.message, true); }
+    add.disabled = false;
+    return;
+  }
+  const pick = e.target.closest("[data-pick]");
+  if (pick) {
+    const input = $("f_" + pick.dataset.pick);
+    pick.disabled = true;
+    try {
+      const res = await api("/api/pick", { initial: input.value });
+      if (res.fallback) note("Окно выбора папок Windows не запущено (start_docker.bat), поэтому папка выбирается здесь.");
+      const path = res.fallback ? await browse(input.value) : res.path;
+      if (path) { input.value = path; queueSave(); }
+    } catch (err) { note(err.message, true); }
+    pick.disabled = false;
+    return;
+  }
+  const open = e.target.closest("[data-open]");
+  if (open) {
+    let key = open.dataset.open;
+    if (key === "SCREENS") key = S.SCREENSHOTS_IN_PLACE ? "INPUT_FOLDER" : "OUTPUT_FOLDER";
+    try {
+      const res = await api("/api/open", { key });
+      if (res.error) note(res.error, true);
+    } catch (err) { note(err.message, true); }
+  }
+});
+
+/* выбор папки на странице: сервер работает не на этом компьютере */
+function browse(start) {
+  const dlg = $("picker");
+  let current = "";
+  async function show(path) {
+    const res = await api("/api/ls", { path });
+    current = res.path;
+    $("picker-path").textContent = res.path;
+    const list = $("picker-list");
+    list.textContent = "";
+    const add = (text, target) => {
+      const b = el("button", { type: "button" }, text);
+      b.addEventListener("click", () => show(target).catch(e => note(e.message, true)));
+      list.append(el("li", null, b));
+    };
+    if (res.parent) add("↑ На уровень выше", res.parent);
+    for (const [name, full] of res.folders) add(name, full);
+    if (!res.folders.length) list.append(el("li", { class: "empty" }, "Вложенных папок нет."));
+  }
+  return new Promise((resolve, reject) => {
+    $("picker-ok").onclick = () => dlg.close("ok");
+    $("picker-cancel").onclick = () => dlg.close("");
+    dlg.onclose = () => resolve(dlg.returnValue === "ok" ? current : "");
+    show(start).then(() => { dlg.returnValue = ""; dlg.showModal(); }, reject);
+  });
+}
+
+$("logout").addEventListener("click", async () => {
+  try { await api("/api/logout", {}); } catch (e) {}
+  location.reload();
+});
+
+$("reset").addEventListener("click", () => {
+  S = { ...DEFAULTS };
+  fill();
+  saving = save();
+});
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && document.activeElement.classList.contains("q")) document.activeElement.blur();
+});
+
+(async function init() {
+  build();
+  try {
+    const st = await api("/api/state");
+    S = st.settings; DEFAULTS = st.defaults; freeGb = st.free_gb;
+    REMOTE = st.remote;
+    $("logout").hidden = !st.auth;
+    document.querySelector(".links").hidden = REMOTE;
+    fill();
+    if (!st.input_exists) note("Папка с видео не найдена: " + S.INPUT_FOLDER, true);
+  } catch (e) {
+    note(e.message, true);
+  }
+  poll();
+})();
+</script>
+</body>
+</html>

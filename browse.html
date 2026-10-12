@@ -1,0 +1,1105 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Проводник скринов</title>
+<style>
+:root {
+  --bg: #E6EBEE;
+  --surface: #F6F8F9;
+  --field: #FFFFFF;
+  --ink: #14232C;
+  --muted: #5A6B75;
+  --line: #C9D2D8;
+  --petrol: #1B5566;
+  --petrol-strong: #123E4B;
+  --on-petrol: #F2F8FA;
+  --amber: #D99A00;
+  --bad: #B0352D;
+  --good: #2E7D5B;
+  --frame: #2A4652;
+  --stage: #081217;
+  --display: Bahnschrift, "DIN Alternate", "Segoe UI Variable Display", "Segoe UI", sans-serif;
+  --body: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --mono: "Cascadia Mono", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0E1A20;
+    --surface: #15252D;
+    --field: #0F1D24;
+    --ink: #E3ECEF;
+    --muted: #93A5AE;
+    --line: #2B3F49;
+    --petrol: #3E94AB;
+    --petrol-strong: #56ABC2;
+    --on-petrol: #071318;
+    --amber: #E8AE1B;
+    --bad: #E0736A;
+    --good: #5FBF95;
+    --frame: #24404C;
+  }
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { background: var(--bg); }
+body {
+  margin: 0;
+  font: 15px/1.45 var(--body);
+  color: var(--ink);
+  background: var(--bg);
+}
+body.locked { overflow: hidden; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+.page { max-width: 1560px; margin: 0 auto; padding: 28px 28px 48px; }
+
+/* ---------- шапка ---------- */
+.app-line { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+.app-name { margin: 0 0 6px; font-size: 14px; color: var(--muted); }
+.app-nav { display: flex; align-items: baseline; gap: 18px; }
+.app-nav a { color: var(--petrol); font-size: 14px; font-weight: 600; }
+.out { padding: 0; border: 0; background: none; color: var(--muted); font-size: 14px; text-decoration: underline; cursor: pointer; }
+.out:hover { color: var(--ink); }
+.headline {
+  margin: 0 0 18px;
+  font: 600 44px/1.05 var(--display);
+  font-stretch: 87%;
+  letter-spacing: -0.01em;
+}
+
+.bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px;
+  padding: 12px 0;
+  border-block: 1px solid var(--line);
+}
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; background: var(--field); }
+.seg button { padding: 7px 14px; border: 0; background: transparent; cursor: pointer; white-space: nowrap; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed=true] { background: var(--petrol); color: var(--on-petrol); }
+.seg .n { margin-left: 8px; font-variant-numeric: tabular-nums; opacity: .7; }
+.count { margin-left: auto; color: var(--muted); font-size: 13.5px; }
+
+.crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: 14px 0; font: 13.5px var(--mono); }
+.crumbs a { color: var(--petrol); }
+.crumbs span.sep { color: var(--muted); }
+.crumbs span.here { color: var(--ink); }
+
+.note { margin: 28px 0; color: var(--muted); }
+.note.bad { color: var(--bad); }
+
+/* ---------- сетка ---------- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 14px 12px;
+  margin: 0; padding: 0;
+  list-style: none;
+}
+.tile {
+  display: block; width: 100%;
+  padding: 0; border: 0;
+  background: none; color: inherit;
+  text-align: left; text-decoration: none;
+  cursor: pointer;
+}
+.pic {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  background: var(--frame);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.pic img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.tile:hover .pic { box-shadow: 0 0 0 2px var(--petrol); }
+.cap {
+  display: block; margin-top: 5px;
+  font: 12px var(--mono);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.folder .pic { display: grid; place-items: center; background: var(--surface); border: 1px solid var(--line); }
+.folder svg { width: 54px; height: 54px; color: var(--petrol); }
+.folder .cap { font: 500 14px var(--body); }
+.sub { display: block; min-height: 19px; font-size: 13px; color: var(--muted); }
+
+.folder.busy { cursor: not-allowed; }
+.folder.busy .pic svg, .folder.busy .cap, .folder.busy .sub { opacity: .4; }
+.folder.busy:hover .pic { box-shadow: none; }
+.mark.busy { background: var(--amber); color: #14232C; }
+.mark {
+  position: absolute; left: 6px; top: 6px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  font: 600 12px var(--body);
+  color: #fff; background: var(--muted);
+}
+.mark.approved { background: #2E7D5B; }
+.mark.deleted { background: #B0352D; }
+.mark.screens { background: #55656E; }
+.tile.moved img { opacity: .35; }
+.tile { user-select: none; -webkit-user-select: none; }
+.tile.picked .pic { box-shadow: 0 0 0 3px var(--amber); }
+.tile.picked .pic::after {
+  content: "✓";
+  position: absolute; right: 6px; top: 6px;
+  width: 24px; height: 24px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--amber); color: #14232C;
+  font: 700 15px/1 var(--body);
+}
+.hint { color: var(--muted); font-size: 13.5px; }
+.lasso {
+  position: absolute; z-index: 4;
+  border: 1px solid var(--amber);
+  background: rgb(217 154 0 / .18);
+  pointer-events: none;
+}
+body.lassoing { cursor: crosshair; user-select: none; -webkit-user-select: none; }
+.pickbar {
+  position: fixed; left: 50%; bottom: 18px; z-index: 5;
+  transform: translateX(-50%);
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px;
+  max-width: calc(100vw - 32px);
+  padding: 12px 16px;
+  background: var(--stage); color: #E3ECEF;
+  border-radius: 6px;
+  box-shadow: 0 6px 24px rgb(8 18 23 / .45);
+}
+.pickbar .v-btn.yes, .pickbar .v-btn.no, .pickbar .v-btn.back { height: 40px; padding: 0 16px; font-size: 15px; }
+.pick-count { font: 600 16px var(--display); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pick-msg { flex-basis: 100%; margin: 0; text-align: center; font-size: 13.5px; color: #93A5AE; }
+.pick-msg:empty { display: none; }
+.pick-msg.bad { color: #F08B80; }
+body.picking .page { padding-bottom: 120px; }
+.play {
+  position: absolute; inset: 0; margin: auto;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: rgb(8 18 23 / .7);
+}
+.play::after {
+  content: ""; position: absolute; left: 17px; top: 13px;
+  border: 9px solid transparent; border-left: 14px solid #fff; border-right: 0;
+}
+.more { height: 1px; }
+
+/* ---------- просмотр ---------- */
+.viewer {
+  position: fixed; inset: 0; z-index: 10;
+  display: grid; grid-template-rows: auto minmax(0, 1fr) auto; grid-template-columns: minmax(0, 1fr);
+  background: var(--stage); color: #E3ECEF;
+}
+.v-top { display: flex; align-items: center; gap: 14px; padding: 10px 14px; }
+.v-name { min-width: 0; font: 13.5px var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.v-count, .v-size { color: #93A5AE; font-size: 13.5px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.v-mark { position: static; }
+.v-top .sp { flex: 1; }
+.v-btn {
+  height: 38px; padding: 0 14px;
+  border: 1px solid #3A525D; border-radius: 4px;
+  background: transparent; color: #E3ECEF;
+  cursor: pointer; white-space: nowrap;
+}
+.v-btn:hover:not(:disabled) { border-color: #E3ECEF; }
+.v-btn:disabled { opacity: .35; cursor: not-allowed; }
+.v-btn kbd {
+  margin-left: 8px; padding: 1px 6px;
+  border: 1px solid currentColor; border-radius: 3px;
+  font: 12px var(--mono); opacity: .75;
+}
+.v-btn.yes { background: #2E7D5B; border-color: #2E7D5B; color: #fff; }
+.v-btn.no { background: #B0352D; border-color: #B0352D; color: #fff; }
+.v-btn.yes, .v-btn.no, .v-btn.back { height: 44px; padding: 0 20px; font: 600 16px var(--display); }
+
+.v-stage { position: relative; min-height: 0; display: grid; place-items: center; padding: 0 64px; }
+.v-stage > img, .v-stage > video { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0 64px; object-fit: contain; }
+.v-arrow {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 48px; height: 72px; padding: 0;
+  border: 0; border-radius: 4px;
+  background: rgb(255 255 255 / .08); color: #E3ECEF;
+  font-size: 30px; line-height: 1; cursor: pointer; z-index: 1;
+}
+.v-arrow:hover:not(:disabled) { background: rgb(255 255 255 / .2); }
+.v-arrow:disabled { opacity: .25; cursor: not-allowed; }
+.v-arrow.prev { left: 8px; }
+.v-arrow.next { right: 8px; }
+
+.v-foot { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px; padding: 12px 14px 16px; }
+.v-msg { flex-basis: 100%; min-height: 20px; margin: 0; text-align: center; font-size: 13.5px; color: #93A5AE; }
+.v-msg.bad { color: #F08B80; }
+
+/* ---------- защита от снимков экрана ---------- */
+img, video { -webkit-user-drag: none; user-select: none; -webkit-user-select: none; }
+.shield {
+  position: fixed; inset: 0; z-index: 100;
+  display: grid; place-items: center;
+  padding: 24px;
+  background: var(--stage); color: #E3ECEF;
+  font: 600 22px/1.3 var(--display); text-align: center;
+}
+body.shielded .grid img, body.shielded .v-stage img, body.shielded .v-stage video { visibility: hidden; }
+@media print { body > * { display: none !important; } }
+
+/* подсказка про выбор: мышь или палец */
+.hint.touch { display: none; }
+@media (hover: none), (pointer: coarse) {
+  .hint.mouse { display: none; }
+  .hint.touch { display: inline; }
+  .v-btn kbd { display: none; }
+}
+.tile, .v-btn, .v-arrow, .seg button { touch-action: manipulation; }
+.tile, .tile img { -webkit-touch-callout: none; }
+
+@media (max-width: 700px) {
+  .page { padding: 16px 12px 40px; }
+  .headline { margin-bottom: 12px; font-size: 28px; }
+  .bar { gap: 8px 12px; padding: 10px 0; }
+  .seg { display: flex; width: 100%; }
+  .seg button {
+    flex: 1 1 0; min-width: 0;
+    display: flex; flex-direction: column; align-items: center; gap: 1px;
+    padding: 7px 4px;
+    font-size: 13.5px; white-space: normal; line-height: 1.2;
+  }
+  .seg .n { margin-left: 0; }
+  .hint { flex: 1 1 auto; font-size: 13px; }
+  .count { margin-left: auto; }
+  .crumbs { margin: 10px 0; overflow-wrap: anywhere; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px 8px; }
+
+  .v-top { gap: 8px; padding: 8px 10px; }
+  .v-top .sp, .v-size { display: none; }
+  .v-name { flex: 1; }
+  .v-top .v-btn { height: 36px; padding: 0 12px; }
+  .v-stage, .v-stage > img, .v-stage > video { padding: 0; }
+  .v-arrow { width: 38px; height: 60px; font-size: 26px; background: rgb(8 18 23 / .45); }
+  .v-arrow.prev { left: 4px; }
+  .v-arrow.next { right: 4px; }
+  .v-foot {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;
+    padding: 10px 10px calc(12px + env(safe-area-inset-bottom));
+  }
+  .v-foot .v-btn { width: 100%; height: 48px; padding: 0 4px; font-size: 15px; }
+  .v-msg { grid-column: 1 / -1; overflow-wrap: anywhere; }
+  .v-btn kbd { display: none; }
+
+  .pickbar {
+    left: 8px; right: 8px; bottom: calc(8px + env(safe-area-inset-bottom));
+    transform: none; max-width: none;
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;
+    padding: 10px;
+  }
+  .pick-count { grid-area: 1 / 1 / 2 / 3; align-self: center; padding-left: 4px; }
+  #pick-clear { grid-area: 1 / 3; }
+  .pickbar .v-btn, .pickbar .v-btn.yes, .pickbar .v-btn.no, .pickbar .v-btn.back {
+    width: 100%; height: 46px; padding: 0 4px;
+    white-space: normal; line-height: 1.1; font-size: 14px;
+  }
+  .pick-msg { grid-column: 1 / -1; }
+  body.picking .page { padding-bottom: 170px; }
+  .shield { font-size: 18px; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="app-line">
+      <p class="app-name">Скриншоты из записей</p>
+      <nav class="app-nav">
+        <a href="/" id="home" hidden>Настройки и запуск</a>
+        <button type="button" class="out" id="logout" hidden>Выйти</button>
+      </nav>
+    </div>
+    <h1 class="headline">Проводник скринов</h1>
+    <div class="bar">
+      <div class="seg" id="roots" role="group" aria-label="Папка"></div>
+      <span class="hint mouse">Выбрать несколько картинок: Shift + щелчок или Shift + обвести мышью</span>
+      <span class="hint touch">Выбрать несколько: долгое нажатие на картинку</span>
+      <span class="count" id="count" role="status"></span>
+    </div>
+    <nav class="crumbs" id="crumbs" aria-label="Путь"></nav>
+  </header>
+
+  <p class="note" id="note" hidden></p>
+  <ul class="grid" id="grid"></ul>
+  <div class="more" id="more"></div>
+</div>
+
+<div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-label="Просмотр" tabindex="-1" hidden>
+  <div class="v-top">
+    <span class="v-count" id="v-count"></span>
+    <span class="v-name" id="v-name"></span>
+    <span class="v-size" id="v-size"></span>
+    <span class="mark v-mark" id="v-mark" hidden></span>
+    <span class="sp"></span>
+    <button type="button" class="v-btn" id="v-close">Закрыть<kbd>Esc</kbd></button>
+  </div>
+  <div class="v-stage" id="v-stage">
+    <button type="button" class="v-arrow prev" id="v-prev" aria-label="Назад">‹</button>
+    <button type="button" class="v-arrow next" id="v-next" aria-label="Вперёд">›</button>
+  </div>
+  <div class="v-foot">
+    <button type="button" class="v-btn back" id="v-back">Вернуть<kbd>Z</kbd></button>
+    <button type="button" class="v-btn no" id="v-no">Удалить<kbd>X</kbd></button>
+    <button type="button" class="v-btn yes" id="v-yes">Одобрить<kbd>C</kbd></button>
+    <p class="v-msg" id="v-msg" role="status"></p>
+  </div>
+</div>
+
+<div class="lasso" id="lasso" hidden></div>
+
+<div class="pickbar" id="pickbar" role="region" aria-label="Выбранные картинки" hidden>
+  <span class="pick-count" id="pick-count" role="status"></span>
+  <button type="button" class="v-btn back" id="pick-back">Вернуть<kbd>Z</kbd></button>
+  <button type="button" class="v-btn no" id="pick-no">Удалить<kbd>X</kbd></button>
+  <button type="button" class="v-btn yes" id="pick-yes">Одобрить<kbd>C</kbd></button>
+  <button type="button" class="v-btn" id="pick-clear">Снять выделение<kbd>Esc</kbd></button>
+  <p class="pick-msg" id="pick-msg" role="status"></p>
+</div>
+
+<div class="shield" id="shield" role="alert" hidden>Снимки экрана запрещены. Вернитесь в окно, чтобы продолжить.</div>
+
+<script>
+const TOKEN = "__TOKEN__";
+const ROOTS = [["screens", "Скрины из видео"], ["approved", "Одобренные"], ["deleted", "Удалённые"]];
+const MARKS = { approved: "Одобрено", deleted: "Удалено", screens: "Возвращено" };
+const DONE_MANY = { approved: "Одобрено", deleted: "Удалено", screens: "Возвращено" };
+const DONE = { approved: "Одобрено", deleted: "Удалено", screens: "Возвращено в папку для скринов" };
+const CHUNK = 300;
+const FOLDER_ICON = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 6.5A2.5 2.5 0 0 1 5.500 4h3.600a2 2 0 0 1 1.500.680L12 6.250h6.500A2.500 2.500 0 0 1 21 8.750v8.750A2.500 2.500 0 0 1 18.500 20h-13A2.500 2.500 0 0 1 3 17.500z"/></svg>';
+
+const $ = id => document.getElementById(id);
+const fmt = n => n.toLocaleString("ru-RU");
+
+let root = "screens", path = [];      // открытая папка
+let files = [];                        // {name, kind, root, tile}
+let shown = 0;                         // сколько плиток уже нарисовано
+let index = -1;                        // открытая в просмотре картинка
+let undo = [];                         // номера одобренных и удалённых, по порядку
+let working = false, loadId = 0;
+let totals = null;                     // файлов в каждой из трёх папок
+let folderTiles = {};                  // имя папки → её плитка
+const picked = new Set();              // номера выбранных картинок
+let anchor = -1;                       // от какой картинки Shift тянет выделение
+let holding = false;                   // открытая папка занята нами
+const BEAT = 10000;                    // как часто подтверждать, что мы ещё здесь
+const BUSY_NOTE = "В этой папке сейчас работает другой пользователь. Она откроется сама, когда он уйдёт.";
+
+// Метка этого браузера: по ней сервер различает людей в папках
+let CLIENT = "";
+try { CLIENT = localStorage.getItem("client") || ""; } catch (e) {}
+if (!CLIENT) {
+  CLIENT = Array.from(crypto.getRandomValues(new Uint8Array(12)), b => b.toString(16).padStart(2, "0")).join("");
+  try { localStorage.setItem("client", CLIENT); } catch (e) {}
+}
+let viewWidth = 0;                     // ширина облегчённой копии для просмотра
+const AHEAD = 10, BEHIND = 2;          // сколько картинок держать загруженными вокруг открытой
+let held = new Set(), direction = 1;   // номера загруженных; куда листают
+
+async function api(url, body) {
+  const opt = { headers: { "X-Token": TOKEN, "X-Client": CLIENT } };
+  if (body !== undefined) {
+    opt.method = "POST";
+    opt.body = JSON.stringify(body);
+    opt.headers["Content-Type"] = "application/json";
+  }
+  const r = await fetch(url, opt);
+  if (r.status === 403) { location.reload(); await new Promise(() => {}); }
+  if (!r.ok) throw new Error("Сервер ответил " + r.status + ". Обновите страницу.");
+  return r.json();
+}
+
+function el(tag, attrs, ...kids) {
+  const n = document.createElement(tag);
+  for (const k in attrs || {}) {
+    if (k === "class") n.className = attrs[k];
+    else if (attrs[k] !== undefined) n.setAttribute(k, attrs[k]);
+  }
+  n.append(...kids);
+  return n;
+}
+
+const rel = name => [...path, name].join("/");
+const media = (kind, f) => `/${kind}?root=${f.root}&path=${encodeURIComponent(rel(f.name))}`;
+const hashOf = (r, parts) => "#" + [r, ...parts.map(encodeURIComponent)].join("/");
+
+function plural(n, one, few, many) {
+  const m10 = n % 10, m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return one;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
+  return many;
+}
+
+/* ---------- папка ---------- */
+function readHash() {
+  const parts = location.hash.slice(1).split("/").filter(Boolean).map(decodeURIComponent);
+  root = ROOTS.some(r => r[0] === parts[0]) ? parts.shift() : "screens";
+  path = parts;
+}
+
+async function load() {
+  const id = ++loadId;
+  closeViewer();
+  readHash();
+  drawHeader();
+  $("grid").textContent = "";
+  $("count").textContent = "";
+  files = []; shown = 0; undo = []; folderTiles = {}; holding = false;
+  picked.clear(); anchor = -1; drawPicked();
+  note("Загрузка…");
+  let res;
+  try {
+    res = await api(`/api/files?root=${root}&path=${encodeURIComponent(path.join("/"))}`);
+  } catch (e) {
+    if (id === loadId) note(e.message, true);
+    return;
+  }
+  if (id !== loadId) return;
+  $("logout").hidden = !res.auth;
+  $("home").hidden = !res.local;
+  viewWidth = res.view_width || 0;
+  if (res.error) return note(res.error, true);
+  if (res.locked) return note(BUSY_NOTE, true);
+
+  const grid = $("grid"), subs = {};
+  for (const name of res.folders) {
+    subs[name] = el("span", { class: "sub" });
+    const a = el("a", { class: "tile folder", href: hashOf(root, [...path, name]) },
+      el("span", { class: "pic" }), el("span", { class: "cap", title: name }, name), subs[name]);
+    a.firstChild.innerHTML = FOLDER_ICON;
+    a.addEventListener("click", e => { if (a.classList.contains("busy")) e.preventDefault(); });
+    folderTiles[name] = a;
+    grid.append(el("li", null, a));
+  }
+  drawBusy(res.busy);
+  holding = res.files.length > 0;
+  loadCounts(id, subs);
+  loadTotals();
+  files = res.files.map(([name, kind]) => ({ name, kind, root, tile: null }));
+  drawMore();
+
+  const nf = res.folders.length, ni = files.length;
+  const bits = [];
+  if (nf) bits.push(`${fmt(nf)} ${plural(nf, "папка", "папки", "папок")}`);
+  if (ni) bits.push(`${fmt(ni)} ${plural(ni, "файл", "файла", "файлов")}`);
+  $("count").textContent = bits.join(", ");
+  if (res.missing) note(`Папки ещё нет: ${res.missing}. Она появится, когда в неё попадёт первый скрин.`);
+  else if (!nf && !ni) note("В этой папке пока пусто.");
+  else note("");
+}
+
+/* ---------- занятые папки ---------- */
+function drawBusy(names) {
+  const busy = new Set(names || []);
+  for (const name in folderTiles) {
+    const a = folderTiles[name], pic = a.firstChild, on = busy.has(name);
+    a.classList.toggle("busy", on);
+    if (on) a.setAttribute("aria-disabled", "true"); else a.removeAttribute("aria-disabled");
+    a.title = on ? "В этой папке работает другой пользователь" : "";
+    const mark = pic.querySelector(".mark");
+    if (on && !mark) pic.append(el("span", { class: "mark busy" }, "Занято"));
+    else if (!on && mark) mark.remove();
+  }
+}
+
+/* Раз в несколько секунд: подтверждаем свою папку и узнаём, какие заняты другими */
+async function beat() {
+  if ($("note").textContent === BUSY_NOTE) return load();   // занятая папка: пробуем открыть снова
+  const id = loadId;
+  try {
+    const res = await api("/api/lock", { root, path: path.join("/"), hold: holding });
+    if (id !== loadId) return;
+    drawBusy(res.busy);
+    if (holding && !res.held) load();  // нас долго не было — папку занял другой
+  } catch (e) {}
+}
+setInterval(beat, BEAT);
+
+// Уходим со страницы — освобождаем папку сразу, не дожидаясь срока
+window.addEventListener("pagehide", () => {
+  fetch("/api/unlock", { method: "POST", keepalive: true, body: "{}",
+    headers: { "X-Token": TOKEN, "X-Client": CLIENT, "Content-Type": "application/json" } }).catch(() => {});
+});
+
+function countText(folders, items) {
+  const bits = [];
+  if (folders) bits.push(`${fmt(folders)} ${plural(folders, "папка", "папки", "папок")}`);
+  if (items) bits.push(`${fmt(items)} ${plural(items, "файл", "файла", "файлов")}`);
+  return bits.join(", ") || "пусто";
+}
+
+/* счётчики считаются обходом всех вложенных папок, поэтому приходят позже сетки */
+async function loadCounts(id, subs) {
+  if (!Object.keys(subs).length) return;
+  try {
+    const res = await api(`/api/counts?root=${root}&path=${encodeURIComponent(path.join("/"))}`);
+    if (id !== loadId) return;
+    for (const name in subs) if (res[name]) subs[name].textContent = countText(...res[name]);
+  } catch (e) {}
+}
+
+async function loadTotals() {
+  try { totals = await api("/api/totals"); drawTotals(); } catch (e) {}
+}
+
+function drawTotals() {
+  for (const b of $("roots").children) {
+    b.querySelector(".n").textContent = totals ? fmt(totals[b.dataset.root]) : "";
+  }
+}
+
+function note(text, bad) {
+  $("note").hidden = !text;
+  $("note").textContent = text;
+  $("note").className = "note" + (bad ? " bad" : "");
+}
+
+function drawHeader() {
+  const seg = $("roots");
+  seg.textContent = "";
+  for (const [key, label] of ROOTS) {
+    const b = el("button", { type: "button", "aria-pressed": String(key === root), "data-root": key },
+      label, el("span", { class: "n" }));
+    b.addEventListener("click", () => { location.hash = hashOf(key, []); });
+    seg.append(b);
+  }
+  drawTotals();
+  const crumbs = $("crumbs");
+  crumbs.textContent = "";
+  const top = ROOTS.find(r => r[0] === root)[1];
+  const chain = [[top, []], ...path.map((name, i) => [name, path.slice(0, i + 1)])];
+  chain.forEach(([name, parts], i) => {
+    if (i) crumbs.append(el("span", { class: "sep" }, "/"));
+    crumbs.append(i === chain.length - 1
+      ? el("span", { class: "here", "aria-current": "page" }, name)
+      : el("a", { href: hashOf(root, parts) }, name));
+  });
+}
+
+/* плитки рисуются порциями: в папке бывают тысячи скринов */
+function drawMore() {
+  const grid = $("grid"), frag = document.createDocumentFragment();
+  const end = Math.min(files.length, shown + CHUNK);
+  for (let i = shown; i < end; i++) {
+    const f = files[i];
+    const pic = el("span", { class: "pic" },
+      el("img", { loading: "lazy", decoding: "async", alt: "", src: media("thumb", f) }));
+    if (f.kind === "v") pic.append(el("span", { class: "play" }));
+    const b = el("button", { type: "button", class: "tile" }, pic,
+      el("span", { class: "cap", title: f.name }, f.name));
+    b.addEventListener("click", e => tileClick(e, i));
+    f.tile = b;
+    drawTile(f);
+    frag.append(el("li", null, b));
+  }
+  shown = end;
+  grid.append(frag);
+}
+
+new IntersectionObserver(entries => {
+  if (entries.some(e => e.isIntersecting) && shown < files.length) drawMore();
+}, { rootMargin: "1200px" }).observe($("more"));
+
+function drawTile(f) {
+  if (!f.tile) return;
+  const moved = f.root !== root;
+  f.tile.classList.toggle("moved", moved);
+  f.tile.classList.toggle("picked", picked.has(files.indexOf(f)));
+  f.tile.setAttribute("aria-pressed", String(picked.has(files.indexOf(f))));
+  const pic = f.tile.firstChild;
+  let mark = pic.querySelector(".mark");
+  if (moved) {
+    if (!mark) pic.append(mark = el("span", null));
+    mark.className = "mark " + f.root;
+    mark.textContent = MARKS[f.root];
+  } else if (mark) mark.remove();
+}
+
+/* ---------- выбор нескольких картинок ----------
+   Shift + щелчок — выделить всё от прошлой выбранной до этой;
+   Ctrl + щелчок — добавить или убрать одну. Видео не выбираются. */
+function tileClick(e, i) {
+  const many = e.shiftKey;
+  // на телефоне, пока что-то выбрано, касание добавляет или убирает картинку
+  const one = e.ctrlKey || e.metaKey || (byTouch() && picked.size > 0);
+  if (!many && !one) return openViewer(i);
+  e.preventDefault();
+  if (working) return;
+  if (many && anchor >= 0) {
+    const from = Math.min(anchor, i), to = Math.max(anchor, i);
+    for (let n = from; n <= to; n++) if (files[n].kind === "i") picked.add(n);
+  } else if (files[i].kind === "i") {
+    if (one && picked.has(i)) picked.delete(i); else picked.add(i);
+    anchor = i;
+  }
+  pickSay("");
+  drawPicked();
+}
+
+/* На телефоне нет Shift: выбор начинается с долгого нажатия на картинку */
+let lastTouch = 0, pressTimer = null, pressAt = null, pressed = false;
+const byTouch = () => Date.now() - lastTouch < 800;
+
+document.addEventListener("touchstart", e => {
+  lastTouch = Date.now();
+  clearTimeout(pressTimer);
+  const tile = e.touches.length === 1 && e.target.closest("button.tile");
+  if (!tile || working || !$("viewer").hidden) return;
+  const n = files.findIndex(f => f.tile === tile);
+  if (n < 0 || files[n].kind !== "i") return;
+  pressAt = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  pressTimer = setTimeout(() => {
+    if (picked.has(n)) picked.delete(n); else picked.add(n);
+    anchor = n;
+    pickSay("");
+    drawPicked();
+    if (navigator.vibrate) navigator.vibrate(15);
+    skipClick = pressed = true;        // отпускание пальца — не щелчок по картинке
+  }, 450);
+}, { passive: true });
+
+document.addEventListener("touchmove", e => {
+  lastTouch = Date.now();
+  // палец поехал — это прокрутка, а не долгое нажатие
+  const t = e.touches[0];
+  if (!pressAt || Math.hypot(t.clientX - pressAt.x, t.clientY - pressAt.y) > 10) clearTimeout(pressTimer);
+}, { passive: true });
+
+for (const type of ["touchend", "touchcancel"]) {
+  document.addEventListener(type, () => {
+    lastTouch = Date.now();
+    clearTimeout(pressTimer);
+    if (!pressed) return;
+    pressed = false;
+    setTimeout(() => { skipClick = false; }, 400);
+  }, { passive: true });
+}
+
+/* Листание пальцем в просмотре */
+let swipe = null;
+$("v-stage").addEventListener("touchstart", e => {
+  swipe = e.touches.length === 1 && e.target.tagName !== "VIDEO"
+    ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : null;
+}, { passive: true });
+$("v-stage").addEventListener("touchend", e => {
+  if (!swipe || e.changedTouches.length !== 1) return;
+  const dx = e.changedTouches[0].clientX - swipe.x, dy = e.changedTouches[0].clientY - swipe.y;
+  swipe = null;
+  // при увеличенной картинке движение пальца — это её сдвиг, а не листание
+  const zoomed = window.visualViewport && window.visualViewport.scale > 1.05;
+  if (!zoomed && Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) step(dx < 0 ? 1 : -1);
+}, { passive: true });
+
+/* Shift + протянуть мышью: рамка выделяет все картинки, которых коснулась */
+let lasso = null, skipClick = false;
+
+document.addEventListener("mousedown", e => {
+  if (e.button !== 0 || !e.shiftKey || working || !files.length || !$("viewer").hidden) return;
+  if (e.target.closest("header, .pickbar, dialog")) return;
+  e.preventDefault();                  // иначе Shift + протяжка выделяет текст
+  lasso = { x0: e.pageX, y0: e.pageY, x: e.clientX, y: e.clientY,
+            before: new Set(picked), boxes: [], moved: false };
+});
+
+document.addEventListener("mousemove", e => {
+  if (!lasso) return;
+  lasso.x = e.clientX;
+  lasso.y = e.clientY;
+  if (lasso.moved || Math.hypot(e.pageX - lasso.x0, e.pageY - lasso.y0) < 6) return;
+  lasso.moved = true;                  // до этого момента это обычный Shift + щелчок
+  $("lasso").hidden = false;
+  document.body.classList.add("lassoing");
+  lassoStep();
+});
+
+function lassoStep() {
+  if (!lasso) return;
+  // у края окна страница прокручивается сама
+  if (lasso.y < 50) scrollBy(0, -20);
+  else if (lasso.y > innerHeight - 50) scrollBy(0, 20);
+
+  const x1 = lasso.x + scrollX, y1 = lasso.y + scrollY;
+  const left = Math.min(lasso.x0, x1), top = Math.min(lasso.y0, y1);
+  const right = Math.max(lasso.x0, x1), bottom = Math.max(lasso.y0, y1);
+  Object.assign($("lasso").style, { left: left + "px", top: top + "px",
+    width: right - left + "px", height: bottom - top + "px" });
+
+  // положение плиток запоминаем один раз; новые добавляются при прокрутке
+  for (let n = lasso.boxes.length; n < shown; n++) {
+    const r = files[n].tile.firstChild.getBoundingClientRect();
+    lasso.boxes.push([r.left + scrollX, r.top + scrollY, r.right + scrollX, r.bottom + scrollY]);
+  }
+  picked.clear();
+  for (const n of lasso.before) picked.add(n);
+  lasso.boxes.forEach(([l, t, r, b], n) => {
+    if (files[n].kind === "i" && l < right && r > left && t < bottom && b > top) picked.add(n);
+  });
+  drawPicked();
+  requestAnimationFrame(lassoStep);
+}
+
+function lassoEnd() {
+  if (!lasso) return;
+  const moved = lasso.moved;
+  lasso = null;
+  if (!moved) return;
+  $("lasso").hidden = true;
+  document.body.classList.remove("lassoing");
+  pickSay("");
+  // кнопку отпустили над плиткой — это не щелчок по ней
+  skipClick = true;
+  setTimeout(() => { skipClick = false; }, 0);
+}
+document.addEventListener("mouseup", lassoEnd);
+window.addEventListener("blur", lassoEnd);
+document.addEventListener("click", e => {
+  if (!skipClick) return;
+  e.preventDefault();
+  e.stopPropagation();
+}, true);
+
+function drawPicked() {
+  for (let n = 0; n < shown; n++) {
+    const tile = files[n].tile, on = picked.has(n);
+    if (tile.classList.contains("picked") !== on) {
+      tile.classList.toggle("picked", on);
+      tile.setAttribute("aria-pressed", String(on));
+    }
+  }
+  const count = picked.size;
+  $("pickbar").hidden = !count;
+  document.body.classList.toggle("picking", count > 0);
+  if (!count) return;
+  $("pick-count").textContent = `Выбрано: ${fmt(count)}`;
+  const roots = [...picked].map(n => files[n].root);
+  $("pick-yes").disabled = working || roots.every(r => r === "approved");
+  $("pick-no").disabled = working || roots.every(r => r === "deleted");
+  $("pick-back").disabled = working || roots.every(r => r === "screens");
+  $("pick-clear").disabled = working;
+}
+
+function pickSay(text, bad) {
+  $("pick-msg").textContent = text;
+  $("pick-msg").className = "pick-msg" + (bad ? " bad" : "");
+}
+
+function clearPicked() {
+  if (working) return;
+  picked.clear();
+  anchor = -1;
+  pickSay("");
+  drawPicked();
+}
+
+/* Одобрить, удалить или вернуть все выбранные картинки разом */
+async function sortPicked(to) {
+  if (working || !picked.size) return;
+  const queue = [...picked].sort((a, b) => a - b).filter(n => files[n].kind === "i" && files[n].root !== to);
+  if (!queue.length) return;
+  const id = loadId, total = queue.length;
+  let done = 0, failed = 0, firstError = "";
+  working = true;
+  drawPicked();
+  async function worker() {
+    while (queue.length && id === loadId) {
+      const n = queue.shift(), f = files[n];
+      try {
+        const res = await api("/api/move", { root: f.root, path: rel(f.name), to });
+        if (id !== loadId) return;
+        if (res.error) { failed++; firstError = firstError || res.error; }
+        else {
+          if (totals) { totals[f.root]--; totals[to]++; }
+          f.root = to;
+          if (f.tile) { f.tile.querySelector("img").src = media("thumb", f); drawTile(f); }
+          undo = undo.filter(x => x !== n);
+          if (to !== "screens") undo.push(n);
+          done++;
+        }
+      } catch (e) { failed++; firstError = firstError || e.message; }
+      pickSay(`${DONE_MANY[to]}: ${fmt(done)} из ${fmt(total)}…`);
+    }
+  }
+  await Promise.all([worker(), worker(), worker(), worker()]);
+  working = false;
+  if (id !== loadId) return;
+  drawTotals();
+  drawPicked();
+  if (failed) pickSay(`${DONE_MANY[to]}: ${fmt(done)} из ${fmt(total)}. Не удалось: ${fmt(failed)} (${firstError})`, true);
+  else pickSay(`${DONE_MANY[to]}: ${fmt(done)}.`);
+}
+
+$("pick-yes").addEventListener("click", () => sortPicked("approved"));
+$("pick-no").addEventListener("click", () => sortPicked("deleted"));
+$("pick-back").addEventListener("click", () => sortPicked("screens"));
+$("pick-clear").addEventListener("click", clearPicked);
+
+/* ---------- просмотр ---------- */
+function openViewer(i) {
+  $("viewer").hidden = false;
+  document.body.classList.add("locked");
+  direction = 1;
+  say("");
+  show(i);
+  $("viewer").focus();
+}
+
+function closeViewer() {
+  if ($("viewer").hidden) return;
+  $("viewer").hidden = true;
+  document.body.classList.remove("locked");
+  clearStage();
+  release(() => true);
+  const f = files[index];
+  index = -1;
+  drawPicked();
+  if (f && f.tile) f.tile.focus();
+}
+
+/* Загруженная (или ещё грузящаяся) картинка файла. Хранится в самом файле,
+   чтобы при листании показать её сразу, без нового запроса. */
+function picture(i) {
+  const f = files[i], url = media("view", f);
+  const done = f.img && f.img.complete;
+  const ready = done && f.img.naturalWidth > 0;
+  // не загрузилась (обрыв связи) или грузится по старому адресу — берём заново
+  if (!f.img || (done && !ready) || (f.imgUrl !== url && !ready)) {
+    f.img = new Image();
+    f.img.alt = f.name;
+    f.img.decoding = "async";
+    f.img.src = f.imgUrl = url;
+  }
+  held.add(i);
+  return f.img;
+}
+
+function release(when) {
+  for (const i of held) {
+    if (!when(i)) continue;
+    const f = files[i];
+    if (f && f.img) { f.img.src = ""; f.img = null; }
+    held.delete(i);
+  }
+}
+
+/* Заранее грузим картинки по ходу листания: ближайшие первыми */
+function preload(i) {
+  const from = direction > 0 ? i - BEHIND : i - AHEAD;
+  const to = direction > 0 ? i + AHEAD : i + BEHIND;
+  release(n => n < from || n > to);
+  for (let d = 1; d <= AHEAD; d++) {
+    for (const n of [i + d * direction, i - d * direction]) {
+      if (n >= from && n <= to && files[n] && files[n].kind === "i") picture(n);
+    }
+  }
+}
+
+function clearStage() {
+  for (const n of $("v-stage").querySelectorAll("img, video")) {
+    if (n.tagName === "VIDEO") { n.pause(); n.removeAttribute("src"); n.load(); }
+    n.remove();                        // картинка остаётся загруженной в памяти
+  }
+}
+
+function show(i) {
+  index = i;
+  const f = files[i];
+  clearStage();
+  const node = f.kind === "v"
+    ? el("video", { controls: "", autoplay: "", src: media("file", f) })
+    : picture(i);
+  $("v-stage").append(node);
+  preload(i);
+  while (i >= shown - 1 && shown < files.length) drawMore();
+  drawViewer();
+}
+
+/* В каком виде картинка показана: имя файла остаётся прежним (.png),
+   а на экран приходит облегчённая копия */
+function drawSize() {
+  const f = files[index], img = f && f.img;
+  let text = "";
+  if (f && f.kind === "i" && img) {
+    if (!img.complete) img.addEventListener("load", drawSize, { once: true });
+    else if (img.naturalWidth) {
+      const copy = /\.(png|bmp)$/i.test(f.name) || img.naturalWidth === viewWidth;
+      text = (copy ? "показана копия JPEG " : "") + `${img.naturalWidth}×${img.naturalHeight}`;
+    }
+  }
+  $("v-size").textContent = text;
+}
+
+function drawViewer() {
+  const f = files[index];
+  $("v-name").textContent = f.name;
+  $("v-count").textContent = `${fmt(index + 1)} из ${fmt(files.length)}`;
+  drawSize();
+  const mark = $("v-mark"), moved = f.root !== root;
+  mark.hidden = !moved;
+  mark.className = "mark v-mark " + f.root;
+  mark.textContent = moved ? MARKS[f.root] : "";
+  const image = f.kind === "i";
+  $("v-yes").disabled = !image || f.root === "approved";
+  $("v-no").disabled = !image || f.root === "deleted";
+  $("v-back").disabled = !canUndo();
+  $("v-prev").disabled = index === 0;
+  $("v-next").disabled = index === files.length - 1;
+}
+
+function say(text, bad) {
+  $("v-msg").textContent = text;
+  $("v-msg").className = "v-msg" + (bad ? " bad" : "");
+}
+
+function step(d) {
+  const i = index + d;
+  if (i < 0 || i >= files.length) return;
+  direction = d;
+  say("");
+  show(i);
+}
+
+/* перенос картинки: одобрить, удалить, вернуть */
+async function move(i, to) {
+  const f = files[i];
+  if (working || f.kind !== "i" || f.root === to) return false;
+  working = true;
+  try {
+    const res = await api("/api/move", { root: f.root, path: rel(f.name), to });
+    if (res.error) { say(res.error, true); return false; }
+    if (totals) { totals[f.root]--; totals[to]++; drawTotals(); }
+    f.root = to;
+    if (f.tile) { f.tile.querySelector("img").src = media("thumb", f); drawTile(f); }
+    undo = undo.filter(n => n !== i);
+    if (to !== "screens") undo.push(i);
+    say(`${DONE[to]}: ${f.name}`);
+    return true;
+  } catch (e) {
+    say(e.message, true);
+    return false;
+  } finally {
+    working = false;
+  }
+}
+
+async function sort(to) {
+  if (index < 0) return;
+  const i = index;
+  if (!(await move(i, to)) || index !== i) return;
+  if (i < files.length - 1) show(i + 1);
+  else show(i);
+}
+
+function canUndo() {
+  const f = files[index];
+  return (f.kind === "i" && f.root !== "screens") || undo.length > 0;
+}
+
+/* «Вернуть»: открытая картинка, если она одобрена или удалена;
+   иначе последняя одобренная или удалённая */
+async function restore() {
+  if (index < 0 || working) return;
+  const f = files[index];
+  const i = f.kind === "i" && f.root !== "screens" ? index : undo[undo.length - 1];
+  if (i === undefined) { say("Возвращать нечего."); return; }
+  if (await move(i, "screens")) show(i);
+}
+
+$("v-yes").addEventListener("click", () => sort("approved"));
+$("v-no").addEventListener("click", () => sort("deleted"));
+$("v-back").addEventListener("click", restore);
+$("v-prev").addEventListener("click", () => step(-1));
+$("v-next").addEventListener("click", () => step(1));
+$("v-close").addEventListener("click", closeViewer);
+
+// e.code — физическая клавиша: «C» и русская «С» это одна и та же
+const KEYS = {
+  KeyC: () => sort("approved"), KeyX: () => sort("deleted"), KeyZ: restore,
+  ArrowLeft: () => step(-1), ArrowRight: () => step(1), Escape: closeViewer,
+};
+const LETTERS = { c: "KeyC", "с": "KeyC", x: "KeyX", "ч": "KeyX", z: "KeyZ", "я": "KeyZ" };
+// те же клавиши для выбранных в сетке картинок
+const PICK_KEYS = {
+  KeyC: () => sortPicked("approved"), KeyX: () => sortPicked("deleted"),
+  KeyZ: () => sortPicked("screens"), Escape: clearPicked,
+};
+document.addEventListener("keydown", e => {
+  if (!$("viewer").hidden || !picked.size || e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+  const key = e.key || "";
+  const action = PICK_KEYS[e.code] || PICK_KEYS[key] || PICK_KEYS[LETTERS[key.toLowerCase()]];
+  if (!action) return;
+  e.preventDefault();
+  action();
+});
+
+document.addEventListener("keydown", e => {
+  if ($("viewer").hidden || e.ctrlKey || e.metaKey || e.altKey) return;
+  const key = e.key || "";
+  const action = KEYS[e.code] || KEYS[key] || KEYS[LETTERS[key.toLowerCase()]];
+  if (!action) return;
+  const arrow = key.startsWith("Arrow");
+  // стрелки внутри плеера перематывают видео
+  if (arrow && e.target.tagName === "VIDEO") return;
+  e.preventDefault();
+  if (!e.repeat || arrow) action();
+});
+
+/* ---------- защита от снимков экрана ----------
+   Браузер не может запретить снимок совсем, но может спрятать картинки в
+   моменты, когда его обычно делают: окно теряет фокус (инструмент
+   «Ножницы», другое приложение), нажата клавиша Win или PrtSc. */
+let shieldTimer = null;
+function shield(on) {
+  clearTimeout(shieldTimer);
+  if (on) {
+    document.body.classList.add("shielded");
+    $("shield").hidden = false;
+    return;
+  }
+  // снимаем с задержкой: снимок делается чуть позже нажатия клавиши
+  shieldTimer = setTimeout(() => {
+    if (!document.hasFocus() || document.hidden) return;
+    document.body.classList.remove("shielded");
+    $("shield").hidden = true;
+  }, 1200);
+}
+
+window.addEventListener("blur", () => shield(true));
+window.addEventListener("focus", () => shield(false));
+document.addEventListener("visibilitychange", () => shield(document.hidden));
+
+function screenshotKey(e) {
+  const key = (e.key || "").toLowerCase(), ctrl = e.ctrlKey || e.metaKey;
+  return e.key === "PrintScreen" || e.code === "PrintScreen" || e.key === "Meta" || e.key === "OS"
+    || (ctrl && (key === "p" || key === "s" || key === "з" || key === "ы"));   // печать, сохранение, «веб-снимок»
+}
+for (const type of ["keydown", "keyup"]) {
+  window.addEventListener(type, e => {
+    if (!screenshotKey(e)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    shield(true);
+    shield(false);
+    // PrtSc уже положил снимок в буфер обмена — затираем его
+    if (e.key === "PrintScreen" && navigator.clipboard) navigator.clipboard.writeText("").catch(() => {});
+  }, true);
+}
+for (const type of ["contextmenu", "dragstart", "copy"]) {
+  document.addEventListener(type, e => e.preventDefault());
+}
+
+$("logout").addEventListener("click", async () => {
+  try { await api("/api/logout", {}); } catch (e) {}
+  location.reload();
+});
+
+window.addEventListener("hashchange", load);
+load();
+</script>
+</body>
+</html>

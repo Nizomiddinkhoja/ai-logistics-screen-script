@@ -1,0 +1,25 @@
+services:
+  screen-gui:
+    build: .
+    container_name: screen-gui
+    ports:
+      - "3000:80"
+    environment:
+      # Часовой пояс этого компьютера. Без него время в именах скринов
+      # будет по UTC.
+      TZ: Asia/Tashkent
+    volumes:
+      # Диски этого компьютера целиком, чтобы в интерфейсе можно было
+      # выбрать любую папку. В интерфейсе пути обычные: D:\recordings.
+      # Новый диск добавляется так же: source E:\, target /drives/e.
+      - type: bind
+        source: C:\
+        target: /drives/c
+      - type: bind
+        source: D:\
+        target: /drives/d
+      # Сохранённые настройки интерфейса (settings.json)
+      - ./docker-config:/config
+    restart: unless-stopped
+    # Время, чтобы дописать текущий кадр и закрыть логи при остановке
+    stop_grace_period: 30s

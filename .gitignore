@@ -1,0 +1,8 @@
+.claude
+__pycache__
+.idea
+
+# Данные программы: ключ входа, ключ окна выбора папок, настройки, миниатюры
+docker-config/
+settings.json
+thumbs/
